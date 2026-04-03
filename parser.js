@@ -161,13 +161,15 @@ function parse_object() {
   return obj;
 }
 
-function reset_parser() {
+function init_parser() {
   pos  = 0;
   col  = 0;
   line = 0;
 }
 
 function parse_json() {
+  init_parser();
+
   skip_ws();
   let parsed = null;
 
@@ -179,23 +181,21 @@ function parse_json() {
     throw new Error("Not a valid JSON");
   }
 
-  reset_parser();
-
   return parsed;
 }
 
 let json = null;
 
-async function main() {
-  const args = Bun.argv
-  const path = args[2];
-  if (!path) {
-    console.error("Please provide file path as an argument");
-    return;
-  }
-  const file = Bun.file(path);
-  json = await file.text();
-  console.log(parse_json(json));
-}
-
-await main();
+// async function main() {
+//   const args = Bun.argv
+//   const path = args[2];
+//   if (!path) {
+//     console.error("Please provide file path as an argument");
+//     return;
+//   }
+//   const file = Bun.file(path);
+//   json = await file.text();
+//   console.log(parse_json(json));
+// }
+//
+// await main();

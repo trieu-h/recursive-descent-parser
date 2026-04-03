@@ -188,7 +188,7 @@ function frame() {
       const texts = [];
 
       if (node.type === "array") {
-        for (const value of node.value) {
+        for (let value of node.value) {
           if (isObject(value)) {
             const len = Object.values(value.value).length;
             value = `[${len} ${len > 1 ? "keys" : "key" }]`;
@@ -260,7 +260,7 @@ function frame() {
     iteration += 1;
   }
 
-  requestAnimationFrame(frame);
+  this_frame = requestAnimationFrame(frame);
 }
 
 function isObject(item) {
@@ -327,18 +327,17 @@ function setup() {
     canvas.width = parent.clientWidth;
     canvas.height = parent.clientHeight;
 
-    run();
+    visualize();
   }
 }
 
 setup();
 
 let this_frame = null;
+let root = null;
 
-function run() {
-  json = input.value;
-
-  const root = parse_json(json);
+function visualize() {
+  if (this_frame) cancelAnimationFrame(this_frame);
 
   const dfs = (value, level) => {
     if (typeof value === "string" || typeof value === "number") {
@@ -378,10 +377,34 @@ function run() {
 
   graph = dfs(root, 0);
   iteration = 0;
-  if (this_frame) {
-    cancelAnimationFrame(this_frame);
-  } else {
-    this_frame = requestAnimationFrame(frame);
+  this_frame = requestAnimationFrame(frame);
+}
+
+function init_states() {
+  json = null;
+  root = null;
+  nodes = [];
+  init_parser();
+}
+
+function clear_screen() {
+  if (this_frame) cancelAnimationFrame(this_frame);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function run() {
+  init_states();
+  json = input.value;
+
+  try {
+    root = parse_json(json);
+  } catch (err) {
+    clear_screen();
+    alert(err);
+    return;
   }
+
+  visualize();
 }
 
