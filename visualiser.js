@@ -5,15 +5,17 @@ if (!ctx) throw("Error: Could not initialize 2d context");
 let graph;
 
 const POINT_COLOR = "#dc322f";
-const TEXT_COLOR  = "#839496";
+const TEXT_COLOR  = "#cb4b16";
+const LINE_TEXT_COLOR = "#d33682";
 const LINE_COLOR  = "#93a1a1";
 const BOX_COLOR   = "#fdf6e3";
 const MAX_ITERATIONS = 1000;
 const STEP = 1 / MAX_ITERATIONS;
 const EPSILON = 10;
 let RADIUS = 10;
-let IDEAL_DISTANCE = 50;
+let IDEAL_DISTANCE = 70;
 let FONT_SIZE = 15;
+let LINE_FONT_SIZE = 13;
 let BOX_PADDING = 10;
 
 function lerp(x, y, t) {
@@ -47,9 +49,9 @@ function drawRect(pos, w, h) {
   ctx.fillRect(pos.x, pos.y, w, h);
 }
 
-function drawText(text, x, y) {
-  ctx.font = `${FONT_SIZE}px serif`;
-  ctx.fillStyle = TEXT_COLOR;
+function drawText(x, y, text, color, font_size) {
+  ctx.font = `${font_size}px serif`;
+  ctx.fillStyle = color;
   ctx.fillText(text, x, y);
 }
 
@@ -93,10 +95,11 @@ function frame() {
 
     drawCircle(ctx, node.position, RADIUS, POINT_COLOR);
 
-    for (const value of Object.values(node.value)) {
+    for (const [key, value] of Object.entries(node.value)) {
       if (value.type === "object" || value.type === "array") {
         draw(value, node);
         connectCircle(node.position, RADIUS, value.position, RADIUS);
+        drawText(lerp(node.position.x, value.position.x, 0.5), lerp(node.position.y, value.position.y, 0.5), key, LINE_TEXT_COLOR, LINE_FONT_SIZE);
         node.adjacents.push(value);
       }
     }
@@ -111,9 +114,11 @@ function frame() {
       if (node.type === "array") {
         for (const value of node.value) {
           if (isObject(value)) {
-            value = `[${Object.values(value.value).length} items]`;
+            const len = Object.values(value.value).length;
+            value = `[${len} ${len > 1 ? "keys" : "key" }]`;
           } else if (Array.isArray(value)) {
-            value = `[${value.length} items]`;
+            const len = value.length;
+            value = `[${len} ${len > 1 ? "items" : "item"}]`;
           }
 
           texts.push(value);
@@ -121,9 +126,11 @@ function frame() {
       } else if (node.type === "object") {
         for (let [k, v] of Object.entries(node.value)) {
           if (isObject(v)) {
-            v = `[${Object.values(v.value).length} items]`;
+            const len = Object.values(v.value).length;
+            v = `[${len} ${len > 1 ? "keys" : "key" }]`;
           } else if (Array.isArray(v)) {
-            v = `[${v.length} items]`;
+            const len = v.length;
+            v = `[${len} ${len > 1 ? "items" : "item"}]`;
           }
 
           texts.push(`${k}: ${v}`);
@@ -135,7 +142,7 @@ function frame() {
       drawRect({x: node.position.x, y: node.position.y}, max_text_w, max_text_h);
       y_pos = node.position.y + FONT_SIZE + BOX_PADDING;
       for (const text of texts) {
-        drawText(text, node.position.x + BOX_PADDING, y_pos);
+        drawText(node.position.x + BOX_PADDING, y_pos, text, TEXT_COLOR);
         y_pos += FONT_SIZE;
       }
     }
