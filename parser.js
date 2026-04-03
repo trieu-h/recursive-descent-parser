@@ -106,8 +106,10 @@ function parse_value() {
     val = parse_array();
   } else if (json[pos] === "{") {
     val = parse_object();
-  } else {
+  } else if (is_number(json[pos])) {
     val = parse_number();
+  } else {
+    throw new Error(`Unexpected token ${json[pos]} at line: ${line} and col: ${col}`);
   }
 
   return val;
@@ -115,7 +117,7 @@ function parse_value() {
 
 function expect(char, msg) {
   if (json[pos] !== char) {
-    throw new Error(msg || `Expected ${char} but got ${json[pos]} instead at line: ${line} and col: ${col}`);
+    throw new Error(msg || `Expected ${char} but found ${json[pos]} at line: ${line} and col: ${col}`);
   } else {
     eat();
   }
@@ -184,16 +186,16 @@ function parse_json() {
 
 let json = null;
 
-// async function main() {
-//   const args = Bun.argv
-//   const path = args[2];
-//   if (!path) {
-//     console.error("Please provide file path as an argument");
-//     return;
-//   }
-//   const file = Bun.file(path);
-//   json = await file.text();
-//   console.log(parse_json(json));
-// }
-//
-// await main();
+async function main() {
+  const args = Bun.argv
+  const path = args[2];
+  if (!path) {
+    console.error("Please provide file path as an argument");
+    return;
+  }
+  const file = Bun.file(path);
+  json = await file.text();
+  console.log(parse_json(json));
+}
+
+await main();
