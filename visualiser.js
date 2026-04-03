@@ -68,7 +68,6 @@ let prev_time = null;
 let dt = null;
 let speed = 0.0002;
 let iteration = 0;
-let mousePos = {x: 0, y: 0};
 let nodes = [];
 let originX = 0;
 let originY = 0;
@@ -252,8 +251,26 @@ function main() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
+  let isPanning = false;
+  let lastMousePos = null;
+
+  canvas.addEventListener("mousedown", (e) => {
+    isPanning = true;
+    lastMousePos = { x: e.offsetX, y: e.offsetY };
+  })
+
+  canvas.addEventListener("mouseup", (e) => {
+    isPanning = false;
+  })
+
   canvas.addEventListener("mousemove", (e) => {
     const mousePos = { x: e.offsetX, y: e.offsetY };
+
+    if (isPanning) {
+      originX += mousePos.x - lastMousePos.x;
+      originY += mousePos.y - lastMousePos.y;
+      lastMousePos = mousePos;
+    }
 
     if (nodes.length) {
       for (const node of nodes) {
