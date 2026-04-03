@@ -327,18 +327,18 @@ function setup() {
     canvas.width = parent.clientWidth;
     canvas.height = parent.clientHeight;
 
-    requestAnimationFrame(frame);
+    run();
   }
 }
 
 setup();
 
 let this_frame = null;
+
 function run() {
   json = input.value;
-  pos  = 0; // Reset parser position;
 
-  const root = parse_object(json);
+  const root = parse_json(json);
 
   const dfs = (value, level) => {
     if (typeof value === "string" || typeof value === "number") {

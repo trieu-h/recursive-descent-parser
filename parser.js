@@ -17,7 +17,9 @@
 // jsonKey:
 //   string
 
-let pos = 0;
+let pos  = 0;
+let line = 0;
+let col  = 0;
 
 function parse_string() {
   expect("\"");
@@ -26,7 +28,7 @@ function parse_string() {
   while (pos < json.length && json[pos] !== "\"") {
     // TODO: Escape special characters
     str += json[pos];
-    pos++;
+    eat();
   }
 
   expect("\"", "Quote string not terminated");
@@ -47,6 +49,11 @@ function parse_bool() {
   throw new Error(`Invalid token at ${pos}`);
 }
 
+function eat() {
+  pos++;
+  col++;
+}
+
 function parse_array() {
   const arr = [];
 
@@ -58,7 +65,7 @@ function parse_array() {
       arr.push(parse_value());
       skip_ws();
       if (json[pos] === ",") {
-        pos++;
+        eat();
         skip_ws();
         parse_array_items();
       }
@@ -80,10 +87,11 @@ function parse_number() {
   let number = 0;
 
   let token = json[pos];
-  while (isNumber(token)) {
+  while (is_number(token)) {
     number *= 10;
     number += parseInt(token);
     token = json[++pos];
+    col++;
   }
   return number;
 }
@@ -107,23 +115,29 @@ function parse_value() {
 
 function expect(char, msg) {
   if (json[pos] !== char) {
-    throw new Error(msg || `Expected ${char} but got ${json[pos]} instead at ${pos}`);
+    throw new Error(msg || `Expected ${char} but got ${json[pos]} instead at line: ${line} and col: ${col}`);
   } else {
-    pos++;
+    eat();
   }
 }
 
 function skip_ws() {
-  while (pos < json.length && (json[pos] === " " || json[pos] === "\n")) {
-    pos++;
+  while (pos < json.length) {
+    if (json[pos] === " " || json[pos] === "\t") {
+      eat();
+    } else if (json[pos] === "\n") {
+      pos++;
+      line++;
+      col = 0;
+    } else {
+      break;
+    }
   }
 }
 
 function parse_object() {
-  skip_ws();
-  expect("{");
-
   const obj = {};
+
   function parse_key_value() {
     skip_ws();
     const key = parse_string();
@@ -134,14 +148,38 @@ function parse_object() {
     skip_ws();
     obj[key] = value;
     if (json[pos] === ",") {
-      pos++;
+      eat();
       parse_key_value();
     }
   }
 
+  expect("{");
   parse_key_value();
   expect("}");
   return obj;
+}
+
+function reset_parser() {
+  pos  = 0;
+  col  = 0;
+  line = 0;
+}
+
+function parse_json() {
+  skip_ws();
+  let parsed = null;
+
+  if (json[pos] === "[") {
+    parsed = parse_array();
+  } else if (json[pos] === "{") {
+    parsed = parse_object();
+  } else {
+    throw new Error("Not a valid JSON");
+  }
+
+  reset_parser();
+
+  return parsed;
 }
 
 let json = null;
@@ -155,7 +193,7 @@ let json = null;
 //   }
 //   const file = Bun.file(path);
 //   json = await file.text();
-//   console.log(parse_object(json));
+//   console.log(parse_json(json));
 // }
 //
 // await main();
