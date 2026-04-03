@@ -267,60 +267,6 @@ function isObject(item) {
   return typeof item === "object" && !Array.isArray(item) && item !== null;
 }
 
-json = `{
-    "GlossDiv3": {
-      "title": "S",
-      "GlossList": {
-        "GlossEntry": {
-          "ID": "SGML",
-          "SortAs": "SGML",
-          "GlossTerm": "Standard Generalized Markup Language",
-          "Acronym": "SGML",
-          "Abbrev": "ISO 8879:1986",
-          "GlossDef": {
-            "para": "A meta-markup language, used to create markup languages such as DocBook.",
-            "GlossSeeAlso": ["GML", "XML"]
-          },
-          "GlossSee": "markup"
-        }
-      }
-    },
-    "GlossDiv1": {
-      "title": "S",
-      "GlossList": {
-        "GlossEntry": {
-          "ID": "SGML",
-          "SortAs": "SGML",
-          "GlossTerm": "Standard Generalized Markup Language",
-          "Acronym": "SGML",
-          "Abbrev": "ISO 8879:1986",
-          "GlossDef": {
-            "para": "A meta-markup language, used to create markup languages such as DocBook.",
-            "GlossSeeAlso": ["GML", "XML"]
-          },
-          "GlossSee": "markup"
-        }
-      }
-    },
-    "GlossDiv2": {
-      "title": "S",
-      "GlossList": {
-        "GlossEntry": {
-          "ID": "SGML",
-          "SortAs": "SGML",
-          "GlossTerm": "Standard Generalized Markup Language",
-          "Acronym": "SGML",
-          "Abbrev": "ISO 8879:1986",
-          "GlossDef": {
-            "para": "A meta-markup language, used to create markup languages such as DocBook.",
-            "GlossSeeAlso": ["GML", "XML"]
-          },
-          "GlossSee": "markup"
-        }
-      }
-    }
-}`;
-
 function screenCoordToWorldCoord(pos) {
   return new Vector2((pos.x - origin.x) / scale, (pos.y - origin.y) / scale);
 }
@@ -359,6 +305,10 @@ function setup() {
     }
   })
 
+  canvas.addEventListener("mouseleave", (e) => {
+    isPanning = false;
+  })
+
   canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
     const mouse = new Vector2(e.offsetX, e.offsetY);
@@ -370,15 +320,15 @@ function setup() {
     scale *= zoom;
   })
 
-  // window.addEventListener('resize', resizeCanvas, false);
-  //
-  // function resizeCanvas() {
-  //   const parent = canvas.parentElement;
-  //   canvas.width = parent.clientWidth;
-  //   canvas.height = parent.clientHeight;
-  //
-  //   requestAnimationFrame(frame);
-  // }
+  window.addEventListener('resize', resizeCanvas, false);
+
+  function resizeCanvas() {
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth;
+    canvas.height = parent.clientHeight;
+
+    requestAnimationFrame(frame);
+  }
 }
 
 setup();
