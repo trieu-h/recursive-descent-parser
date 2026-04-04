@@ -38,34 +38,12 @@ class Vector2 {
     return this;
   }
 
-  mulInPlace(s) {
-    this.x *= s;
-    this.y *= s;
-    return this;
-  }
-
-  divInPlace(s) {
-    this.x /= s;
-    this.y /= s;
-    return this;
+  length() {
+    return Math.sqrt(this.lengthSq());
   }
 
   lengthSq() {
     return this.x * this.x + this.y * this.y;
-  }
-
-  distSq(v) {
-    const dx = this.x - v.x;
-    const dy = this.y - v.y;
-    return dx * dx + dy * dy;
-  }
-
-  dist(v) {
-    return Math.sqrt(this.distSq(v));
-  }
-
-  clone() {
-    return new Vector2(this.x, this.y);
   }
 
   static lerp(a, b, t) {
@@ -73,7 +51,9 @@ class Vector2 {
   }
 
   static dist(a, b) {
-    return a.dist(b);
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return dx * dx + dy * dy;
   }
 }
 
@@ -84,9 +64,8 @@ const LINE_COLOR  = "#93a1a1";
 const BOX_COLOR   = "#fdf6e3";
 const MAX_ITERATIONS = 1000;
 const STEP = 1 / MAX_ITERATIONS;
-const EPSILON = 10;
 let RADIUS = 10;
-let IDEAL_DISTANCE = 200;
+let IDEAL_DISTANCE = 100;
 let FONT_SIZE = 13;
 let BOX_PADDING = 10;
 
@@ -103,12 +82,8 @@ function draw_line(start, end, lineWidth = 1) {
   ctx.stroke();
 }
 
-function dist(a, b) {
-  return a.dist(b);
-}
-
 function connectCircle(a, r1, b, r2) {
-  const d = dist(a, b);
+  const d = Vector2.dist(a, b);
   const start = new Vector2(
     a.x + (r1 * (b.x - a.x)) / d,
     a.y + (r1 * (b.y - a.y)) / d
@@ -227,7 +202,7 @@ function frame() {
 
   if (iteration <= MAX_ITERATIONS) {
     // Eades Spring Embedder
-    const REPULSION = 2;
+    const REPULSION = 2000;
     const SPRING = 1;
 
     const totalForce = nodes.map(() => new Vector2(0, 0));
@@ -236,18 +211,20 @@ function frame() {
         // fr: Repulsive force between one vertex against all the other vertices
         for (let j = 0; j < nodes.length; j++) {
           if (j === i) continue;
-          const ij_vec = nodes[i].position.sub(nodes[j].position);
-          const distSq = nodes[i].position.distSq(nodes[j].position);
-          const force  = ij_vec.mul(REPULSION / distSq);
+          const dir = nodes[i].position.sub(nodes[j].position);
+          const distSq = dir.lengthSq() || 0.1;
+          const mag = REPULSION / distSq;
+          const force  = dir.div(Math.sqrt(distSq)).mul(mag);
           totalForce[i].addInPlace(force);
           totalForce[j].subInPlace(force);
         }
 
         // fa: Attraction force between adjacent nodes
         for (const j of nodes[i].adjacents) {
-          const ji_vec = j.position.sub(nodes[i].position);
-          const dist = j.position.dist(nodes[i].position);
-          f_spring = ji_vec.mul(SPRING * Math.log(dist /IDEAL_DISTANCE));
+          const dir = j.position.sub(nodes[i].position);
+          const length = dir.length() || 0.1;
+          const mag = SPRING * Math.log(length / IDEAL_DISTANCE);
+          const f_spring = dir.div(length).mul(mag);
           totalForce[i].addInPlace(f_spring);
         }
     }
@@ -299,7 +276,7 @@ function setup() {
 
     if (nodes.length) {
       for (const node of nodes) {
-        node.is_hovered = dist(screenCoordToWorldCoord(mousePos), node.position) < RADIUS;
+        node.is_hovered = Vector2.dist(screenCoordToWorldCoord(mousePos), node.position) < RADIUS;
       }
     }
   })
@@ -343,7 +320,7 @@ function visualize() {
       return value;
     }
 
-    const r = level * 20;
+    const r = level * 10;
     const degree = Math.random() * 360;
     const rad = degree * Math.PI / 180;
 
