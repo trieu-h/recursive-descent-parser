@@ -1,6 +1,8 @@
 # JSON Visualiser
 This project started out as an exercise in writing a recursive descent parser for json but I decided to accompany it with a visualiser later on.
 
+![demo](demo.gif)
+
 ## Structure
 parser.js -> A recursive descent parser to parse json file.\
 visualiser.js -> A force-directed graph to visualise the parsed json file.
